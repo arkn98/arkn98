@@ -1,0 +1,62 @@
+name: update-readme
+
+on:
+  push:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 2 * * *
+
+jobs:
+
+  update-readme:
+    name: update-readme
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install gnuplot
+        run: |-
+          curl -L https://sourceforge.net/projects/gnuplot/files/gnuplot/5.4.0/gnuplot-5.4.0.tar.gz/download > gnuplot.tar.gz
+          tar xzf gnuplot.tar.gz
+          cd gnuplot-5.4.0/
+          ./configure
+          make
+          make check
+          sudo make install
+
+      - name: Set up Python environment
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Set up Python Poetry
+        uses: Gr1N/setup-poetry@v2
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: ${{ runner.os }}-poetry-${{ hashFiles('poetry.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Update README.md
+        env:
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+        run: |-
+          poetry run python collect_stats.py
+          cat README.md
+
+      - name: Commit and push if changed
+        run: |-
+          git diff
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add -A
+          git commit -m "Update cp-everyday progress" || exit 0
+          git push
