@@ -1,7 +1,7 @@
 set terminal dumb
 set yrange [0:6]
 set ytics 0,1,6
-set lmargin 11
+set lmargin 12
 set ylabel "Problems\nsolved"
 set xdata time
 set xlabel 'Days'
