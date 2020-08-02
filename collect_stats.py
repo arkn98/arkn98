@@ -53,6 +53,11 @@ def update_stats(data: typing.Tuple[str, typing.List]):
   # store only 12 entries
   if len(to_write) >= 11:
     del to_write[:1]
+
+  if any(date == i[0] for i in to_write):
+    # commit date already present, so return
+    return
+
   to_write.append((date, len(added_files)))
   # gnuplot wont show the point of the most recent date on the plot,
   # so we add another dummy entry
